@@ -16,12 +16,14 @@ Build a map-based application, which lets the user see geo-based data on a map a
 
 - [Open Street Maps](https://www.openstreetmap.org/)
 
-## My project
+## Bezpečné školy
 
-Fill in (either in English, or in Slovak):
+**Popis aplikácie**: Aplikácia bude hľadať bezpečné základné a stredné školy a bude obsahovať tieto tri scenáre:
+ 1. Aplikácia bude slúžiť na vyhľadanie základných a stredných škôl vo vybranej oblasti Chicaga. 
+ 2. Bude poskytovaná možnosť zobrazenia nebezpečnosti okolia školy podľa dát kriminality v danej oblasti.
+ 3. Nájde školy s najnižšou kriminalitou v nastavenom okolí.
 
-**Application description**: `<fill in>`
+**Zdroje údajov**: - [Open Street Maps](https://www.openstreetmap.org/)
+                   - [Chicago crime data](https://www.kaggle.com/chicago/chicago-crime)
 
-**Data source**: `<fill in>`
-
-**Technologies used**: `<fill in>`
+**Použité technológie:** Java, Spring boot, thymeleaf, postgis, postgres...
