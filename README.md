@@ -18,12 +18,13 @@ Build a map-based application, which lets the user see geo-based data on a map a
 
 ## Bezpečné školy
 
-**Popis aplikácie**: Aplikácia bude hľadať bezpečné základné a stredné školy a bude obsahovať tieto tri scenáre:
- 1. Aplikácia bude slúžiť na vyhľadanie základných a stredných škôl vo vybranej oblasti Chicaga. 
- 2. Bude poskytovaná možnosť zobrazenia nebezpečnosti okolia školy podľa dát kriminality v danej oblasti.
- 3. Nájde školy s najnižšou kriminalitou v nastavenom okolí.
+**Popis aplikácie**: Aplikácia bude hľadať bezpečné základné, stredné školy a vysoké školy a škôlky. Bude obsahovať tieto scenáre:
+ 1. Aplikácia bude slúžiť na vyhľadanie základných, stredných, vysokých škôl a škôlok vo vybranej oblasti Chicaga s možnosťou nastavenia radiusu hľadania a maximálneho počtu výsledkov zoradených podľa vzdialenosti. 
+ 2. Bude poskytovaná možnosť zobrazenia nebezpečnosti okolia školy podľa dát kriminality v danej oblasti (cez heat mapu, dáta kriminality boli upravené aby vyhovovali na daný problém škôl, teda boli odfiltrované nočné údaje a niektoré typy kriminality, ktoré sa netýkajú detí).
+ 3. Zobrazí školy aj s indikátorom nebezpečenstva školy z pohľadu kriminality v okolí školy, zoradené od najbezpečnejšej.
+ 4. Pre vybranú školú zobrazí najbližšiu autobusovú zastávku.
 
 **Zdroje údajov**: - [Open Street Maps](https://www.openstreetmap.org/)
                    - [Chicago crime data](https://www.kaggle.com/chicago/chicago-crime)
 
-**Použité technológie:** Java, Spring boot, thymeleaf, postgis, postgres...
+**Použité technológie:** Java, Spring boot, thymeleaf, postgis, postgres, mapbox, boostrap.
