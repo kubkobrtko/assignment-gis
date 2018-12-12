@@ -18,17 +18,18 @@ Aplikácia bezpečné školy poskytuje tieto funkcie v oblasti mesta Chicago:
 
 Ukážky týchto scenárov:
 Úvodná obrazovka
-![Screenshot](screenshot1.png)
+![Screenshot](screenshot1.PNG)
 Heat mapa zločinov v Chicagu:
-![Screenshot](screenshot2.png)
+![Screenshot](screenshot2.PNG)
 Vyhľadanie škôl podľa nastaveného filtra, vyhľadané školy sú zobrazené v zozname s možnosťou kliknutia pre rýchle priblíženie:
-![Screenshot](screenshot3.png)
+![Screenshot](screenshot3.PNG)
 Vyhľadanie bezpečných škôl podľa nastaveného filtra so zobrazeným stupňa nebezpečenstva:
-![Screenshot](screenshot4.png)
+![Screenshot](screenshot4.PNG)
 Nájdenie najbližšej autobusovej zástavky pre vybranú školu:
-![Screenshot](screenshot5.png)
+![Screenshot](screenshot5.PNG)
 Kombinácia vrstiev vyhľadávania školy a heat mapy pre zločiny v Chicagu:
-![Screenshot](screenshot6.png)
+![Screenshot](screenshot6.PNG)
+
 Celá aplikácia je riešená ako maven project. Delí sa na dve častí: [frontend](#frontend), kde je použitý thymeleaf, a mapbox-gl.js a komunikuje pomocou [REST API](#api) s [backend application](#backendom), ktorý je napísaný v jave s použitím [Spring Bootu](http://spring.io/projects/spring-boot), ktorý komunikuje cez dopyty s [PostgreSQL](https://www.postgresql.org/), ktorá používa rozšírenie [PostGIS](https://postgis.net/) na prácu s geo dátami.
 
 # Frontend
