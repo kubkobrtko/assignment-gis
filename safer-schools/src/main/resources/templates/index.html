@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset='utf-8' />
+    <title>Safer schools</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.51.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.51.0/mapbox-gl.css' rel='stylesheet' />
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js" type="text/javascript"></script>
+    <link href="webjars/bootstrap/4.1.1/css/bootstrap.min.css" th:href="@{/webjars/bootstrap/4.1.1/css/bootstrap.min.css}" rel="stylesheet" media="screen"/>
+    <script th:src="@{/webjars/jquery/3.3.1-1/jquery.min.js}" src="webjars/jquery/3.3.1-1/jquery.min.js"></script>
+    <script th:src="@{/webjars/bootstrap/4.1.1/js/bootstrap.min.js}" src="webjars/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
+</head>
+
+<body>
+<div class="row position-static">
+    <div class="col-sm-2 border border-dark" id="heatMap">
+        <h6 class="text-left">Heat Map generation</h6>
+        <input class="btn btn-primary" onclick="getCrimes()" type="submit" value="Generate HeatMap">
+        <br/>
+        <br/>
+        <input class="btn btn-primary" onclick="hideHeatMap()" type="submit" value="Hide HeatMap">
+        <br/>
+    </div>
+    <div class="col-sm-6 border border-dark">
+            <div class="form-group form-inline">
+                <label for="schoolType">School type:</label>
+                <select id="schoolType" class="form-control">
+                    <option value="school">School(Primary and High school)</option>
+                    <option value="kindergarten">Kindergarten</option>
+                    <option value="university">University</option>
+                </select>
+            </div>
+            <div class="form-group form-inline">
+                <label for="radius">Max Radius:</label>
+                <input value=1000 type="number" class="form-control" id="radius">
+                <input class="btn btn-primary" id="schoolButton"  value="Search schools" onclick="searchSchools()" type="submit">
+            </div>
+            <div class="form-group form-inline">
+                <label for="limit">Max closest results:</label>
+                <input value=10 type="number" class="form-control" id="limit">
+                <input class="btn btn-primary" id="schoolCrimeButton" value="Search safe schools" onclick="getSchoolsWithCrimeCounts()" type="submit">
+            </div>
+    </div>
+    <div id='nearbyschools' class='col-sm-4'>
+        <div class="hhh">
+            <h2>List of nearby schools</h2>
+        </div>
+        <div id='schoolList'>
+        </div>
+    </div>
+</div>
+
+
+<div id='map'>
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1Ijoia3Via29icnRrbyIsImEiOiJjanAwMXN0bXQycWoxM3dwaDAza2psNHNiIn0.ry1q7bA5DHxMBDhKIzcDig';
+        var map = new mapboxgl.Map({
+            container: 'map', // container id
+            style: 'mapbox://styles/mapbox/streets-v9', // stylesheet location
+            center: [-87.70, 41.87], // starting position [lng, lat]
+            zoom: 12 // starting zoom
+        });
+
+        var marker = new mapboxgl.Marker({ draggable: true }).setLngLat([-87.70, 41.87]).addTo(map);
+
+        function removeNearbySchoolLayers() {
+            if (map.getLayer('searchedSchools') !== undefined) {
+                map.removeLayer('searchedSchools');
+            }
+            if (map.getSource('nearbySchools') !== undefined) {
+                map.removeSource('nearbySchools');
+            }
+        }
+
+        function removeBusLayers() {
+            if (map.getLayer('busStop') !== undefined) {
+                map.removeLayer('busStop');
+            }
+            if (map.getSource('nearestBusStop') !== undefined) {
+                map.removeSource('nearestBusStop');
+            }
+        }
+
+        function hideHeatMap() {
+            if (map.getLayer('heatMap') !== undefined) {
+                map.removeLayer('heatMap');
+            }
+            if (map.getLayer('point') !== undefined) {
+                map.removeLayer('point');
+            }
+            if (map.getSource('ChicagoCrimes') !== undefined) {
+                map.removeSource('ChicagoCrimes');
+            }
+        }
+
+        function flyTo(currentSchool) {
+            map.flyTo({
+                center: currentSchool.geometry.coordinates,
+                zoom: 18
+            });
+        }
+
+        function flyToBusStop(currentSchool) {
+            map.flyTo({
+                center: currentSchool.geometry.coordinates,
+                zoom: 16
+            });
+        }
+        function removeList() {
+            if (document.getElementById("leaf-1") !== null) {
+                var list = document.getElementById("leaf-1").parentElement;
+                while (list.firstChild) {
+                    list.removeChild(list.firstChild);
+                }
+            }
+        }
+
+        function generateBusStopButton(schoolList,i) {
+            var nearestBusStop = schoolList.appendChild(document.createElement('button'));
+            nearestBusStop.href = '#';
+            nearestBusStop.className = 'btn btn-primary';
+            nearestBusStop.dataPosition = i;
+            nearestBusStop.innerHTML = "Find closest Bus Stop <br />";
+            return nearestBusStop;
+        }
+        function addSchoolLinkListener(link,geojson) {
+            link.addEventListener('click', function () {
+                flyTo(geojson[this.dataPosition]);
+                var activeItem = document.getElementsByClassName('active');
+                if (activeItem[0]) {
+                    activeItem[0].classList.remove('active');
+                }
+                this.parentNode.classList.add('active');
+            });
+        }
+        function generateSchoolLink(geojson) {
+            var school = geojson[i];
+            var prop = school.properties;
+            var schoolList = document.getElementById('schoolList');
+            var leaf = schoolList.appendChild(document.createElement('div'));
+            leaf.id = 'leaf-' + i;
+            leaf.className = 'leaf';
+            var link = leaf.appendChild(document.createElement('a'));
+            link.href = '#';
+            link.className = 'title';
+            link.dataPosition = i;
+            link.innerHTML = prop.title ;
+            return link;
+        }
+
+        function makeFilter() {
+            var schoolType = document.getElementById('schoolType');
+            var limit = document.getElementById('limit');
+            var radius = document.getElementById('radius');
+            var search = {};
+            search["latitude"] = marker.getLngLat().lat;
+            search["longitude"] = marker.getLngLat().lng;
+            search["schoolType"] = schoolType.value;
+            search["radius"] = radius.value;
+            search["limit"] = limit.value;
+            return search;
+        }
+
+        function showBusStop(nearestBusStop,geojson) {
+            nearestBusStop.addEventListener('click', function () {
+                marker.setLngLat([geojson[this.dataPosition].geometry.coordinates[0], geojson[this.dataPosition].geometry.coordinates[1]]).addTo(map);
+                var search = makeFilter();
+                $.ajax({
+                    type: 'POST',
+                    url: '/getNearestBusStop',
+                    data: JSON.stringify(search),
+                    dataType: 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        var datD = JSON.stringify(data);
+                        var geojson = jQuery.parseJSON(datD);
+                        removeBusLayers();
+
+                        map.addSource("nearestBusStop", {
+                            "type": "geojson",
+                            "data": {
+                                "type": "FeatureCollection",
+                                "features": geojson
+                            }
+                        });
+                        map.addLayer({
+                            "id": "busStop",
+                            "type": "symbol",
+                            "source": "nearestBusStop",
+                            "layout": {
+                                'icon-image': 'bus-15',
+                                'icon-allow-overlap': false,
+                                "text-field": "{title} Bus Stop",
+                                "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+                                "text-offset": [0, 0.5],
+                                "text-anchor": "top"
+                            }
+                        });
+                    }
+                });
+                flyToBusStop(geojson[this.dataPosition]);
+                var activeItem = document.getElementsByClassName('active');
+                if (activeItem[0]) {
+                    activeItem[0].classList.remove('active');
+                }
+                this.parentNode.classList.add('active');
+            });
+        }
+
+        function getCrimes() {
+            $.ajax({
+                type: 'POST',
+                url: 'getCrimes',
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    var datD = JSON.stringify(data);
+                    var geojson = jQuery.parseJSON(datD);
+                    hideHeatMap();
+                    map.addSource("ChicagoCrimes", {
+                        "type": "geojson",
+                        "data": {
+                            "type": "FeatureCollection",
+                            "features": geojson
+                        }
+                    });
+                    map.addLayer({
+                        id: 'heatMap',
+                        type: 'heatmap',
+                        source: 'ChicagoCrimes',
+                        maxzoom: 14,
+                        paint: {
+                            // increase weight as diameter breast height increases
+                            'heatmap-weight': {
+                                property: 'dbh',
+                                type: 'exponential',
+                                stops: [
+                                    [1, 0],
+                                    [62, 1]
+                                ]
+                            },
+                            // increase intensity as zoom level increases
+                            'heatmap-intensity': {
+                                stops: [
+                                    [11, 1],
+                                    [15, 3]
+                                ]
+                            },
+                            // assign color values be applied to points depending on their density
+                            'heatmap-color': [
+                                'interpolate',
+                                ['linear'],
+                                ['heatmap-density'],
+                                0, 'rgba(236,222,239,0)',
+                                0.2, 'rgb(208,209,230)',
+                                0.4, 'rgb(166,189,219)',
+                                0.6, 'rgb(103,169,207)',
+                                0.8, 'rgb(28,144,153)'
+                            ],
+                            // increase radius as zoom increases
+                            'heatmap-radius': {
+                                stops: [
+                                    [11, 15],
+                                    [15, 20]
+                                ]
+                            },
+                            // decrease opacity to transition into the circle layer
+                            'heatmap-opacity': {
+                                default: 1,
+                                stops: [
+                                    [14, 1],
+                                    [15, 0]
+                                ]
+                            }
+                        }
+                    }, 'waterway-label');
+                    map.addLayer({
+                        id: 'point',
+                        type: 'circle',
+                        source: 'ChicagoCrimes',
+                        minzoom: 14,
+                        paint: {
+                            // increase the radius of the circle as the zoom level and dbh value increases
+                            'circle-radius': {
+                                property: 'dbh',
+                                type: 'exponential',
+                                stops: [
+                                    [{ zoom: 15, value: 1 }, 5],
+                                    [{ zoom: 15, value: 62 }, 10],
+                                    [{ zoom: 22, value: 1 }, 20],
+                                    [{ zoom: 22, value: 62 }, 50]
+                                ]
+                            },
+                            'circle-color': {
+                                property: 'dbh',
+                                type: 'exponential',
+                                stops: [
+                                    [0, 'rgba(236,222,239,0)'],
+                                    [10, 'rgb(236,222,239)'],
+                                    [20, 'rgb(208,209,230)'],
+                                    [30, 'rgb(166,189,219)'],
+                                    [40, 'rgb(103,169,207)'],
+                                    [50, 'rgb(28,144,153)'],
+                                    [60, 'rgb(1,108,89)']
+                                ]
+                            },
+                            'circle-stroke-color': 'white',
+                            'circle-stroke-width': 1,
+                            'circle-opacity': {
+                                stops: [
+                                    [14, 0],
+                                    [15, 1]
+                                ]
+                            }
+                        }
+                    }, 'waterway-label');
+                    map.flyTo({
+                        center: [-87.6530, 41.8725],
+                        zoom: 10
+                    });
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                   console.log(thrownError);
+                }
+            });
+        }
+
+        function searchSchools() {
+            var search = makeFilter();
+            $.ajax({
+                type: 'POST',
+                url: '/getSchools',
+                data: JSON.stringify(search),
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+
+                success: function (data) {
+                    var datD = JSON.stringify(data);
+                    var geojson = jQuery.parseJSON(datD);
+                    removeNearbySchoolLayers();
+
+                    map.addSource("nearbySchools", {
+                        "type": "geojson",
+                        "data": {
+                            "type": "FeatureCollection",
+                            "features": geojson
+                        }
+                    });
+                    map.addLayer({
+                        "id": "searchedSchools",
+                        "type": "symbol",
+                        "source": "nearbySchools",
+                        "layout": {
+                            'icon-image': 'school-15',
+                            'icon-allow-overlap': false,
+                            "text-field": "{title}",
+                            "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+                            "text-offset": [0, 0.5],
+                            "text-anchor": "top"
+                        }
+                    });
+                    removeList();
+                    for (i = 0; i < geojson.length; i++) {
+                        var link = generateSchoolLink(geojson);
+                        addSchoolLinkListener(link,geojson);
+                        var schoolList = document.getElementById('schoolList');
+                        var nearestBusStop = generateBusStopButton(schoolList,i);
+                        showBusStop(nearestBusStop,geojson);
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    console.log(thrownError);
+                }
+            });
+        }
+
+        function getSchoolsWithCrimeCounts() {
+            var search = makeFilter();
+            $.ajax({
+                type: 'POST',
+                url: '/getSchoolsWithCrimeCounts',
+                data: JSON.stringify(search),
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8',
+
+                success: function (data) {
+                    var datD = JSON.stringify(data);
+                    var geojson = jQuery.parseJSON(datD);
+                    removeNearbySchoolLayers();
+
+                    map.addSource("nearbySchools", {
+                        "type": "geojson",
+                        "data": {
+                            "type": "FeatureCollection",
+                            "features": geojson
+                        }
+                    });
+                    map.addLayer({
+                        "id": "searchedSchools",
+                        "type": "symbol",
+                        "source": "nearbySchools",
+                        "layout": {
+                            'icon-image': 'school-15',
+                            'icon-allow-overlap': false,
+                            "text-field": "{title}",
+                            "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+                            "text-offset": [0, 0.5],
+                            "text-anchor": "top"
+                        }
+                    });
+                    removeList();
+                    for (i = 0; i < geojson.length; i++) {
+                        var school = geojson[i];
+                        var prop = school.properties;
+                        var schoolList = document.getElementById('schoolList');
+                        var leaf = schoolList.appendChild(document.createElement('div'));
+                        leaf.id = 'leaf-' + i;
+                        var link = leaf.appendChild(document.createElement('a'));
+                        leaf.appendChild(document.createElement('br'));
+                        var crimes = leaf.appendChild(document.createElement('p'));
+                        link.href = '#';
+                        link.dataPosition = i;
+                        link.innerHTML = prop.title;
+                        var danger_level = prop.crime_count;
+                        danger_level = Math.round(danger_level / 100);
+                        crimes.innerHTML = "  Danger level: " + danger_level;
+
+                        addSchoolLinkListener(link,geojson);
+                        var nearestBusStop = generateBusStopButton(schoolList,i);
+                        showBusStop(nearestBusStop,geojson);
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    console.log(thrownError);
+                }
+            });
+        }
+    </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,36 @@
+body {
+    margin:0;
+    padding:0;
+}
+
+#map {
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: 67%;
+    height: 69%;
+    top: 31%;
+    bottom: 0;
+}
+
+label {
+    width:180px;
+    clear:left;
+    text-align:left;
+    padding-right:10px;
+}
+
+input, label {
+    float:left;
+}
+
+#schoolButton {
+    position: absolute;
+    right: 10px;
+}
+
+p {
+    display: inline;
+    color: red;
+    font-weight: bold;
+}

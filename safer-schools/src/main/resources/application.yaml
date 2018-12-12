@@ -1,0 +1,27 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+spring:
+  session:
+    store-type: none
+  thymeleaf:
+    cache: false
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/gis
+    username: postgres
+    password: postgres
+    platform: postgres
+  application:
+    name: My first Spring-boot application!
+  resources:
+    add-mappings: true
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+          hibernate:
+            temp:
+              use_jdbc_metadata_defaults: false
+    open-in-view: true
+
