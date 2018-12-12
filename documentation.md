@@ -8,55 +8,87 @@
 
 # Overview
 
-This application shows hotels in Bratislava on a map. Most important features are:
-- search by proximity to my current location
-- search by hotel name
-- intelligent ordering - by proximity and by hotel features
-- hotels on the map are color coded by their quality assigned in stars (standard)
+Aplikácia bezpečné školy poskytuje tieto funkcie v oblasti mesta Chicago:
+- nájde od vybraného miesta všetky školy, zoradené od najbližšej
+- školy je možné filtrovať nastavením radiusu vyhľadávania, limitom na počet nájdených výsledkov, a taktiež typom školy (aplikácia poskytuje filtrovanie tých typov: školy (základné a stredné), škôlky a vysoké školy (univerzity))
+- zobrazenie heat mapy zločinov za posledný rok z externého zdroja údajov (posledný rok v tomto zdroji je 2016)
+- rovanké filtrovanie aké som už uviedol vyššie akurát v tomto prípade sa berie dp  úvahy externý dátový zdroj kriminality a vyhľadjú sa školy a k ním je priradený stupeň nebezpečenstva (danger level), podľa neho sú aj školy zoradzované, najbezpečnejšie školy sú zobrazené vyššie v liste vyhľadávania
+- k vybranej škole, ktorú používateľ našiel podľa filtra je možné nájsť najbližšiu autobusovä zástavku
+- všetky tieto vrstvy sú kombinovateľné a pri vyhľadaní škôl použivateľ vidí kriminalitu vo vybranej oblasti (ak si zvolil zobrazenie heat mapy)
 
-This is it in action:
-
-![Screenshot](screenshot.png)
-
-The application has 2 separate parts, the client which is a [frontend web application](#frontend) using mapbox API and mapbox.js and the [backend application](#backend) written in [Rails](http://rubyonrails.org/), backed by PostGIS. The frontend application communicates with backend using a [REST API](#api).
+Ukážky týchto scenárov:
+Úvodná obrazovka
+![Screenshot](screenshot1.png)
+Heat mapa zložinov v Chicagu:
+![Screenshot](screenshot2.png)
+Vyhľadanie škôl podľa nastaveného filtra, vyhľadané školy sú zobrazené v zozname s možnosťou kliknutia pre rýchle priblíženie:
+![Screenshot](screenshot3.png)
+Vyhľadanie bezpečných škôl podľa nastaveného filtra so zobrazeným stupňa nebezpečenstva:
+![Screenshot](screenshot4.png)
+Nájdenie najbližšej autobusovej zástavky pre vybranú školu:
+![Screenshot](screenshot5.png)
+Kombinácia vrstiev vyhľadávania školy a heat mapy pre zločiny v Chicagu:
+![Screenshot](screenshot6.png)
+Celá aplikácia je riešená ako maven project. Delí sa na dve častí: [frontend](#frontend), kde je použitý thymeleaf, a mapbox-gl.js a komunikuje pomocou [REST API](#api) s [backend application](#backendom), ktorý je napísaný v jave s použitím [Spring Bootu](http://spring.io/projects/spring-boot), ktorý komunikuje cez dopyty s [PostgreSQL](https://www.postgresql.org/), ktorá použva rozšírenie [PostGIS](https://postgis.net/) na prácu s geo dátami.
 
 # Frontend
 
-The frontend application is a static HTML page (`index.html`), which shows a mapbox.js widget. It is displaying hotels, which are mostly in cities, thus the map style is based on the Emerald style. I modified the style to better highlight main sightseeing points, restaurants and bus stops, since they are all important when selecting a hotel. I also highlighted rails tracks to assist in finding a quiet location.
-
-All relevant frontend code is in `application.js` which is referenced from `index.html`. The frontend code is very simple, its only responsibilities are:
-- detecting user's location, using the standard [web location API](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/Using_geolocation)
-- displaying the sidebar panel with hotel list and filtering controls, driving the user interaction and calling the appropriate backend APIs
-- displaying geo features by overlaying the map with a geojson layer, the geojson is provided directly by backend APIs
+Frontend pozostáva len so statickej stránky (`index.html`), ktorá zabezpečuje zobrazenie mapbox-gl.js. Zobrazuje všetky akcie, ktoré používateľ vykoná, teda zobrazenie vyhĺadaných škôl, heat mapu kriminality, najbližšiu zastávku a danger level vyhľadaných škôl. Taktiež zobrazuje filter, všetky interakčné možnosti(vyhľadávanie, heat mapa), ktoré môže používateľ vykonať. A taktiež list výsledkov, ktoré boli vyhľadané. Všetok relevatný kód sa nachádza v `index.html`. 
 
 # Backend
 
-The backend application is written in Ruby on Rails and is responsible for querying geo data, formatting the geojson and data for the sidebar panel.
+Backend ako som už spomenul je napisaný v jave a využíva spring boot. Obsahuje dopyty do databázy a samozrejme zabezpečuje transformáciu do požadovaného geo json formátu. Jednotlivé dopyty je možné nájsť v súbore `DatabaseQueries.java`.
 
 ## Data
 
-Hotel data is coming directly from Open Street Maps. I downloaded an extent covering whole Slovakia (around 1.2GB) and imported it using the `osm2pgsql` tool into the standard OSM schema in WGS 84 with hstore enabled. To speedup the queries I created an index on geometry column (`way`) in all tables. The application follows standard Rails conventions and all queries are placed in models inside `app/models`, mostly in `app/models/hotel.rb`. GeoJSON is generated by using a standard `st_asgeojson` function, however some postprocessing is necessary (in `app/controllers/search_controller.rb`) in order to merge all hotels into a single geojson.
+Dáta mestá Chicago pochádzajú z Open Street Maps a majú viac ako 1.2GB veľkosť. Dáta boli imporotované do PostgreSQL databázy pomocou nástroja `osm2pgsql`. Ďalej sme využívali dátový zdroj kriminality mesta Chicago z [Kaggle](https://www.kaggle.com/). Použití dáta sú uvedené v `readme.MD`
 
 ## Api
 
-**Find hotels in proximity to coordinates**
+Api posktuje tieto služby:
+**Vráť mi kriminálnu činnosť za posledný rok**
 
-`GET /search?lat=25346&long=46346123`
+`POST /getCrimes`
 
-**Find hotels by name, sorted by proximity and quality**
+**Nájdi školy**
 
-`GET /search?name=hviezda&lat=25346&long=46346123`
+`POST /getSchools`
+
+**Nájdi bezpečné školy**
+
+`POST /getSchoolsWithCrimeCounts`
+
+**Nájdi najbližšiu autobusovú zástavku**
+
+`POST /getNearestBusStop`
+
+### Request payload
+Príklad request payloadu pre nájdene školy:
+```
+{
+  latitude: 41.87
+  limit: "10"
+  longitude: -87.7
+  radius: "1000"
+  schoolType: "school"
+}
+```
 
 ### Response
-
+Príklad odpovede na dopyt `POST /getSchools` s vyššie uvedený payloadom
 API calls return json responses with 2 top-level keys, `hotels` and `geojson`. `hotels` contains an array of hotel data for the sidebar, one entry per matched hotel. Hotel attributes are (mostly self-evident):
 ```
 {
-  "name": "Modra hviezda",
-  "style": "modern", # cuisine style
-  "stars": 3,
-  "address": "Panska 31"
-  "image_url": "/assets/hotels/652.png"
+  "type": "Feature", 
+  "geometry": 
+   {
+   "type":"Point",
+   "coordinates":[-87.6998345,41.8707649004763]},
+   "properties": 
+     {
+     "title": "Manley High School"
+     }
+   }
 }
 ```
-`geojson` contains a geojson with locations of all matched hotels and style definitions.
+`geojson` obsahuje nájdené školy podľa používateľových preferencií.
