@@ -55,7 +55,7 @@ Výsledne zlepšenie pre jednotlivé dopyty vypadá nasledovne:
 
 -nájdi najbližšie školy
 
-![Screenshot](school.png)
+![Screenshot](schoolQuery.png)
 
 -nájdi bezpečné školy
 
