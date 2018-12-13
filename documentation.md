@@ -1,11 +1,3 @@
-*This is a documentation for a fictional project, just to show you what I expect. Notice a few key properties:*
-- *no cover page, really*
-- *no copy&pasted assignment text*
-- *no code samples*
-- *concise, to the point, gets me a quick overview of what was done and how*
-- *I don't really care about the document length*
-- *I used links where appropriate*
-
 # Overview
 
 Aplikácia bezpečné školy poskytuje tieto funkcie v oblasti mesta Chicago:
@@ -17,17 +9,29 @@ Aplikácia bezpečné školy poskytuje tieto funkcie v oblasti mesta Chicago:
 - všetky tieto vrstvy sú kombinovateľné a pri vyhľadaní škôl používateľ vidí kriminalitu vo vybranej oblasti (ak si zvolil zobrazenie heat mapy)
 
 Ukážky týchto scenárov:
+
 Úvodná obrazovka
+
 ![Screenshot](screenshot1.PNG)
+
 Heat mapa zločinov v Chicagu:
+
 ![Screenshot](screenshot2.PNG)
+
 Vyhľadanie škôl podľa nastaveného filtra, vyhľadané školy sú zobrazené v zozname s možnosťou kliknutia pre rýchle priblíženie:
+
 ![Screenshot](screenshot3.PNG)
+
 Vyhľadanie bezpečných škôl podľa nastaveného filtra so zobrazeným stupňa nebezpečenstva:
+
 ![Screenshot](screenshot4.PNG)
+
 Nájdenie najbližšej autobusovej zástavky pre vybranú školu:
+
 ![Screenshot](screenshot5.PNG)
+
 Kombinácia vrstiev vyhľadávania školy a heat mapy pre zločiny v Chicagu:
+
 ![Screenshot](screenshot6.PNG)
 
 Celá aplikácia je riešená ako maven project. Delí sa na dve častí: [frontend](#frontend), kde je použitý thymeleaf, a mapbox-gl.js a komunikuje pomocou [REST API](#api) s [backend application](#backendom), ktorý je napísaný v jave s použitím [Spring Bootu](http://spring.io/projects/spring-boot), ktorý komunikuje cez dopyty s [PostgreSQL](https://www.postgresql.org/), ktorá používa rozšírenie [PostGIS](https://postgis.net/) na prácu s geo dátami.
@@ -42,7 +46,8 @@ Backend ako som už spomenul je napísaný v jave a využíva spring boot. Obsah
 
 ## Data
 
-Dáta mestá Chicago pochádzajú z Open Street Maps a majú viac ako 1.2GB veľkosť. Dáta boli importované do PostgreSQL databázy pomocou nástroja `osm2pgsql`. Ďalej sme využívali dátový zdroj kriminality mesta Chicago z [Kaggle](https://www.kaggle.com/). Použití dáta sú uvedené v `readme.MD`
+Dáta mestá Chicago pochádzajú z Open Street Maps a majú viac ako 1.2GB veľkosť. Dáta boli importované do PostgreSQL databázy pomocou nástroja `osm2pgsql`. Ďalej sme využívali dátový zdroj kriminality mesta Chicago z [Kaggle](https://www.kaggle.com/). Použití dáta sú uvedené v `readme.MD`.
+
 
 ## Api
 
@@ -64,6 +69,7 @@ Api poskytuje tieto služby:
 
 `POST /getNearestBusStop`
 
+Jednotlivé REST API služby je možné nájsť v súbore `PDTController.java`
 ### Request payload
 Príklad request payloadu pre nájdene školy:
 ```
