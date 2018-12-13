@@ -55,15 +55,15 @@ Výsledne zlepšenie pre jednotlivé dopyty vypadá nasledovne:
 
 -nájdi najbližšie školy
 
-![Screenshot](school.PNG)
+![Screenshot](school.png)
 
 -nájdi bezpečné školy
 
-![Screenshot](safeSchool.PNG)
+![Screenshot](safeSchool.png)
 
 -nájdi najbližšiu autobusovú zástavku
 
-![Screenshot](nearestBusStop.PNG)
+![Screenshot](nearestBusStop.png)
 
 
 ## Api
