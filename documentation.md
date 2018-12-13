@@ -48,6 +48,23 @@ Backend ako som už spomenul je napísaný v jave a využíva spring boot. Obsah
 
 Dáta mestá Chicago pochádzajú z Open Street Maps a majú viac ako 1.2GB veľkosť. Dáta boli importované do PostgreSQL databázy pomocou nástroja `osm2pgsql`. Ďalej sme využívali dátový zdroj kriminality mesta Chicago z [Kaggle](https://www.kaggle.com/). Použití dáta sú uvedené v `readme.MD`.
 
+## Dopyty
+
+V projekte boli použité 4 typy dopytov, ktoré ako som už spomenul sa nachádzajú v súbore `DatabaseQueries.java`. V súbore `queries.sql` je z každého typu vybraný jeden reálny príklad na ukážku. tieto príkaldy boli použité pri optimalizácií dopytov a boli vytvorené tieto indexy: `CREATE INDEX index_amenity_points ON planet_osm_point(amenity)` , `CREATE INDEX index_highway_points ON planet_osm_point(highway)`, `CREATE INDEX index_type_crimes ON crimes(primary_type)`, aj tieto indexy sa nachádzajú v spomentom súbore.
+Výsledne zlepšenie pre jednotlivé dopyty vypadá nasledovne:
+
+-nájdi najbližšie školy
+
+![Screenshot](school.PNG)
+
+-nájdi bezpečné školy
+
+![Screenshot](safeSchool.PNG)
+
+-nájdi najbližšiu autobusovú zástavku
+
+![Screenshot](nearestBusStop.PNG)
+
 
 ## Api
 
